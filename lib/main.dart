@@ -54,9 +54,10 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     //   androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
     //   androidWillPauseWhenDucked: true,
     // ));
-    subToInterruptionEventStream();
+    // subToInterruptionEventStream();
     subDevicesChangedEventStream();
-    subBecomingNoisyEventStream();
+    // subBecomingNoisyEventStream();
+    // navigator.mediaDevices.ondevicechange = onDeviceChange;
 
     // Listen to errors during playback.
     _player.playbackEventStream.listen((event) {},
@@ -77,11 +78,14 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final devices = await navigator.mediaDevices.enumerateDevices();
 
     devices.forEach((element) {
-      dev.log(
-          '${element.deviceId}, ${element.groupId}, ${element.kind},${element.label}');
+      dev.log('${element.deviceId}, ${element.groupId},  ${element.kind}');
     });
-  //  await navigator.mediaDevices.selectAudioOutput(AudioOutputOptions(deviceId: ))
- 
+    //  await navigator.mediaDevices.selectAudioOutput(AudioOutputOptions(deviceId: ))
+  }
+
+  onDeviceChange(value) async {
+    dev.log('From Webrts on device change, value: $value');
+    await deviceFromWebRtc();
   }
 
   subToInterruptionEventStream() {
@@ -109,13 +113,14 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   subDevicesChangedEventStream() {
-  
     session.devicesChangedEventStream.listen((event) {
-      dev.log('Devices added:   ${event.devicesAdded}');
-      dev.log('Devices removed: ${event.devicesRemoved}');
+      if (event.devicesAdded.isNotEmpty) {
+        dev.log('From audio_session. Devices added:   ${event.devicesAdded}');
+      } else if (event.devicesRemoved.isNotEmpty) {
+        dev.log('From audio_session. Devices removed: ${event.devicesRemoved}');
+      }
+      dev.log('From audio_session - empty device list');
     });
-
-  
   }
 
   subBecomingNoisyEventStream() {
@@ -134,10 +139,11 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   getDevices() async {
     final devices = await session.getDevices();
+    dev.log('from Audio session');
     devices.forEach(
       (element) {
         dev.log(
-            'getDevices : device : ${element.name}, ${element.type}, isInput: ${element.isInput}, isOutput: ${element.isOutput}');
+            'id: ${element.id},  ${element.name}, ${element.type}, isInput: ${element.isInput}, isOutput: ${element.isOutput}');
       },
     );
   }
@@ -197,6 +203,28 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
                     deviceFromWebRtc();
                   },
                   child: Text('deviceFromWebRtc')),
+
+              ElevatedButton(
+                  onPressed: () {
+                    getDevices();
+                  },
+                  child: Text('getDevicesFromAudioSession')),
+              ElevatedButton(
+                  onPressed: () async {
+                    final mediaDeviceInfo = await navigator.mediaDevices
+                        .selectAudioOutput(
+                            AudioOutputOptions(deviceId: 'bluetooth'));
+                    dev.log(
+                        'mediaDeviceInfo: ${mediaDeviceInfo.deviceId}, ${mediaDeviceInfo.groupId}, ${mediaDeviceInfo.kind}, ${mediaDeviceInfo.label}');
+                  },
+                  child: Text('selectAudioOutput')),
+              ElevatedButton(
+                  onPressed: () {
+                    final constr =
+                        navigator.mediaDevices.getSupportedConstraints();
+                    dev.log(constr.toString());
+                  },
+                  child: Text('getSupportedConstraints')),
               // Display play/pause button and volume/speed sliders.
               ControlButtons(_player),
               // Display seek bar. Using StreamBuilder, this widget rebuilds
