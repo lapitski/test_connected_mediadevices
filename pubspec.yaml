@@ -10,7 +10,6 @@ dependencies:
   flutter:
     sdk: flutter
 
-  advanced_audio_manager: ^0.0.1
   audio_session: ^0.1.19
   audio_service: ^0.18.13
   flutter_webrtc: ^0.9.48+hotfix.1
