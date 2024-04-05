@@ -1,3 +1,3 @@
 # test_audio_devices
 
-A new Flutter project.
+Flutter app to test audio_session and flutter_webrtc on new added device events
