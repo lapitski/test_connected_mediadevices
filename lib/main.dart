@@ -55,9 +55,9 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     //   androidWillPauseWhenDucked: true,
     // ));
     // subToInterruptionEventStream();
-    subDevicesChangedEventStream();
+    // subDevicesChangedEventStream();
     // subBecomingNoisyEventStream();
-    // navigator.mediaDevices.ondevicechange = onDeviceChange;
+    navigator.mediaDevices.ondevicechange = onDeviceChange;
 
     // Listen to errors during playback.
     _player.playbackEventStream.listen((event) {},
