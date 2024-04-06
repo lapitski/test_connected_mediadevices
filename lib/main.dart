@@ -55,7 +55,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     //   androidWillPauseWhenDucked: true,
     // ));
     // subToInterruptionEventStream();
-    // subDevicesChangedEventStream();
+     //subDevicesChangedEventStream();
     // subBecomingNoisyEventStream();
     navigator.mediaDevices.ondevicechange = onDeviceChange;
 
@@ -179,6 +179,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+  
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -197,7 +198,11 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
                     Helper.setSpeakerphoneOn(true);
                   },
                   child: Text('setSpeakerphone ON')),
-
+ ElevatedButton(
+                  onPressed: () {
+                    Helper.selectAudioOutput('headset');
+                  },
+                  child: Text('select headset')),
               ElevatedButton(
                   onPressed: () {
                     deviceFromWebRtc();
@@ -209,15 +214,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
                     getDevices();
                   },
                   child: Text('getDevicesFromAudioSession')),
-              ElevatedButton(
-                  onPressed: () async {
-                    final mediaDeviceInfo = await navigator.mediaDevices
-                        .selectAudioOutput(
-                            AudioOutputOptions(deviceId: 'bluetooth'));
-                    dev.log(
-                        'mediaDeviceInfo: ${mediaDeviceInfo.deviceId}, ${mediaDeviceInfo.groupId}, ${mediaDeviceInfo.kind}, ${mediaDeviceInfo.label}');
-                  },
-                  child: Text('selectAudioOutput')),
+            
               ElevatedButton(
                   onPressed: () {
                     final constr =
