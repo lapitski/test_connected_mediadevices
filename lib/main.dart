@@ -57,7 +57,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     //   androidWillPauseWhenDucked: true,
     // ));
     // subToInterruptionEventStream();
-    subDevicesChangedEventStream();
+   // subDevicesChangedEventStream();
     // subBecomingNoisyEventStream();
     navigator.mediaDevices.ondevicechange = onDeviceChange;
 
@@ -94,9 +94,10 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   getUserMedia() async {
-    final res = await navigator.mediaDevices.getUserMedia({'audio': true});
-    final r = res.getAudioTracks();
+    final res = await navigator.mediaDevices. getUserMedia({'audio': true});
+    final r = res. getAudioTracks();
     print(r);
+    print(res.id);
   }
 
   onDeviceChange(value) async {
@@ -129,6 +130,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   subDevicesChangedEventStream() {
+   
     session.devicesChangedEventStream.listen((event) {
       if (event.devicesAdded.isNotEmpty) {
         dev.log('From audio_session. Devices added:   ${event.devicesAdded}');
