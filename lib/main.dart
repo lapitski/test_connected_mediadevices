@@ -22,9 +22,11 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final _player = AudioPlayer();
   late AudioSession session;
+  String devicesString = '';
 
   @override
   void initState() {
+    navigator.mediaDevices.getUserMedia({'audio': true});
     super.initState();
     ambiguate(WidgetsBinding.instance)!.addObserver(this);
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -55,7 +57,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     //   androidWillPauseWhenDucked: true,
     // ));
     // subToInterruptionEventStream();
-     //subDevicesChangedEventStream();
+    subDevicesChangedEventStream();
     // subBecomingNoisyEventStream();
     navigator.mediaDevices.ondevicechange = onDeviceChange;
 
@@ -75,12 +77,26 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   deviceFromWebRtc() async {
+    devicesString = '';
+    dev.log('deviceFromWebRtc:', level: 1);
     final devices = await navigator.mediaDevices.enumerateDevices();
 
     devices.forEach((element) {
-      dev.log('${element.deviceId}, ${element.groupId},  ${element.kind}');
+      dev.log(
+          '${element.deviceId}, ${element.groupId},  ${element.kind}, ${element.label}');
+      devicesString +=
+          '${element.deviceId}, ${element.groupId},  ${element.kind}, ${element.label} \n';
+      if (element.label.contains('Headphones')) {
+        print(element.deviceId);
+      }
     });
-    //  await navigator.mediaDevices.selectAudioOutput(AudioOutputOptions(deviceId: ))
+    setState(() {});
+  }
+
+  getUserMedia() async {
+    final res = await navigator.mediaDevices.getUserMedia({'audio': true});
+    final r = res.getAudioTracks();
+    print(r);
   }
 
   onDeviceChange(value) async {
@@ -137,15 +153,19 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
   }
 
-  getDevices() async {
+  getDevicesFromAudiosession() async {
+    devicesString = '';
     final devices = await session.getDevices();
     dev.log('from Audio session');
     devices.forEach(
       (element) {
         dev.log(
             'id: ${element.id},  ${element.name}, ${element.type}, isInput: ${element.isInput}, isOutput: ${element.isOutput}');
+        devicesString +=
+            'id: ${element.id},  ${element.name}, ${element.type}, isInput: ${element.isInput}, isOutput: ${element.isOutput} \n';
       },
     );
+    setState(() {});
   }
 
   @override
@@ -179,67 +199,79 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-  
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                  onPressed: () {
-                    Helper.setSpeakerphoneOn(false);
-                  },
-                  child: Text('setSpeakerphone OFF')),
-              ElevatedButton(
-                  onPressed: () {
-                    Helper.setSpeakerphoneOn(true);
-                  },
-                  child: Text('setSpeakerphone ON')),
- ElevatedButton(
-                  onPressed: () {
-                    Helper.selectAudioOutput('headset');
-                  },
-                  child: Text('select headset')),
-              ElevatedButton(
-                  onPressed: () {
-                    deviceFromWebRtc();
-                  },
-                  child: Text('deviceFromWebRtc')),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                    onPressed: () {
+                      Helper.setSpeakerphoneOn(false);
+                    },
+                    child: Text('setSpeakerphone OFF')),
+                ElevatedButton(
+                    onPressed: () {
+                      Helper.setSpeakerphoneOn(true);
+                    },
+                    child: Text('setSpeakerphone ON')),
+                ElevatedButton(
+                    onPressed: () {
+                      Helper.selectAudioOutput(
+                          '558b47b2be1938a278fb7dd6c415dc55da6d325d24c5cbafdb5bda1d39454aae');
+                    },
+                    child: Text('select headset')),
+                ElevatedButton(
+                    onPressed: () {
+                      deviceFromWebRtc();
+                    },
+                    child: Text('deviceFromWebRtc')),
 
-              ElevatedButton(
-                  onPressed: () {
-                    getDevices();
+                ElevatedButton(
+                    onPressed: () {
+                      getDevicesFromAudiosession();
+                    },
+                    child: Text('getDevicesFromAudioSession')),
+
+                ElevatedButton(
+                    onPressed: () {
+                      final constr =
+                          navigator.mediaDevices.getSupportedConstraints();
+                      dev.log(constr.toString());
+                    },
+                    child: Text('getSupportedConstraints')),
+
+                ElevatedButton(
+                    onPressed: () {
+                      getUserMedia();
+                    },
+                    child: Text('getUserMedia')),
+                // Display play/pause button and volume/speed sliders.
+                ControlButtons(_player),
+                // Display seek bar. Using StreamBuilder, this widget rebuilds
+                // each time the position, buffered position or duration changes.
+                StreamBuilder<PositionData>(
+                  stream: _positionDataStream,
+                  builder: (context, snapshot) {
+                    final positionData = snapshot.data;
+                    return SeekBar(
+                      duration: positionData?.duration ?? Duration.zero,
+                      position: positionData?.position ?? Duration.zero,
+                      bufferedPosition:
+                          positionData?.bufferedPosition ?? Duration.zero,
+                      onChangeEnd: _player.seek,
+                    );
                   },
-                  child: Text('getDevicesFromAudioSession')),
-            
-              ElevatedButton(
-                  onPressed: () {
-                    final constr =
-                        navigator.mediaDevices.getSupportedConstraints();
-                    dev.log(constr.toString());
-                  },
-                  child: Text('getSupportedConstraints')),
-              // Display play/pause button and volume/speed sliders.
-              ControlButtons(_player),
-              // Display seek bar. Using StreamBuilder, this widget rebuilds
-              // each time the position, buffered position or duration changes.
-              StreamBuilder<PositionData>(
-                stream: _positionDataStream,
-                builder: (context, snapshot) {
-                  final positionData = snapshot.data;
-                  return SeekBar(
-                    duration: positionData?.duration ?? Duration.zero,
-                    position: positionData?.position ?? Duration.zero,
-                    bufferedPosition:
-                        positionData?.bufferedPosition ?? Duration.zero,
-                    onChangeEnd: _player.seek,
-                  );
-                },
-              ),
-            ],
+                ),
+                const SizedBox(height: 16.0),
+                const Text('Current devices'),
+                const SizedBox(height: 8.0),
+                Text(devicesString),
+              ],
+            ),
           ),
         ),
       ),
